@@ -6,7 +6,7 @@ import net.runelite.client.config.ConfigItem;
 // Chatbox
 // Notify
 // Audio (like the boost lost audio when using divines/antipoisons
-@ConfigGroup("example")
+@ConfigGroup("dt2perfectBossNotifier")
 public interface dt2pbfConfig extends net.runelite.client.config.Config
 {
 	@ConfigItem(
