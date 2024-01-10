@@ -47,7 +47,9 @@ import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Desert Treasure 2 Perfect Boss Notifier"
+	name = "Desert Treasure 2 Perfect Boss Notifier",
+	description="Notifies player when failing perfect kill conditions",
+	tags= {"desert", "treasure", "dt2", "perfect"}
 )
 public class d2tpbfPlugin extends Plugin
 {
