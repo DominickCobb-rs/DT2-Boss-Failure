@@ -31,11 +31,7 @@ public class dt2pbfInfobox extends InfoBox
 	@Override
 	public String getTooltip()
 	{
-		if (plugin.notified)
-		{
-			return "Failed";
-		}
-		return "Perfect";
+		return plugin.currentReason;
 	}
 
 }
