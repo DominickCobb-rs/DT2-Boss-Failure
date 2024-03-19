@@ -90,11 +90,11 @@ public class d2tpbfPlugin extends Plugin
 	public String currentReason = "Perfect";
 	public boolean notified = false;
 	public NPC currentBoss;
-	private WorldPoint lastLocation = null;
+	public WorldPoint lastLocation = null;
 	//Regions
 	private static final int[] BOSS_REGION_IDS = {4405, 8291, 12132, 10595};
 
-	private static final String[] BOSS_NAMES = {"Duke Sucellus", "Vardorvis", "Leviathan", "The Whisperer"};
+	private static final String[] BOSS_NAMES = {"duke sucellus", "vardorvis", "the leviathan", "the whisperer"};
 
 	@Override
 	protected void startUp() throws Exception {
@@ -128,7 +128,7 @@ public class d2tpbfPlugin extends Plugin
 	@Subscribe
 	public void onNpcSpawned(NpcSpawned event)
 	{
-		if (config.infobox() && ArrayUtils.contains(BOSS_NAMES, event.getNpc().getName()) && !event.getNpc().getName().contains("Head"))
+		if (config.infobox() && ArrayUtils.contains(BOSS_NAMES, event.getNpc().getName().toLowerCase()) && !event.getNpc().getName().contains("Head"))
 		{
 			currentBoss = event.getNpc();
 			reset();
@@ -150,13 +150,12 @@ public class d2tpbfPlugin extends Plugin
 	@Subscribe
 	public void onNpcDespawned(NpcDespawned event)
 	{
-
 		if (event.getActor().getName()==null)
 		{
 			return;
 		}
 		// Vardorvis' head scuffs the contains check
-		if (ArrayUtils.contains(BOSS_NAMES, event.getActor().getName()) && !event.getActor().getName().contains("Head"))
+		if (ArrayUtils.contains(BOSS_NAMES, event.getActor().getName().toLowerCase().trim()) && !event.getActor().getName().toLowerCase().contains("head"))
 		{
 			reset();
 			removeInfobox();

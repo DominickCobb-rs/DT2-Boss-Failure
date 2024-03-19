@@ -21,6 +21,7 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GraphicChanged;
+import net.runelite.api.events.GraphicsObjectCreated;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.eventbus.Subscribe;
 import org.apache.commons.lang3.ArrayUtils;
@@ -44,9 +45,11 @@ public class Leviathan
 	private static final int LEVIATHAN_MAGE_SPOT_ANIM = 2492;
 	private static final int LEVIATHAN_MELEE_SPOT_ANIM = 2491;
 	private static final int[] LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS = {10285, 10286, 10287, 10290};
+	private static final int[] LEVIATHAN_SMOKE_BLAST_ANIM = {10290, 10287};
+	private static final int[] LEVIATHAN_LIGHTNING_ANIM = {10285, 10286};
 	private static final int BOULDER_MOVE_ANIM = 1114;
-	private static final int[] LEVIATHAN_BOULDER_SHADOWS = {2475, 2476, 2477};
-	private boolean leviathanSpecial = false;
+	private static final int[] LEVIATHAN_BOULDER_SHADOWS = {2475, 2476, 2477, 2478, 2479, 2480};
+	private int leviathanSpecial = -1;
 	private static final int LEVIATHAN_REGION_ID = 8291;
 
 	private boolean inLeviathanRegion()
@@ -70,16 +73,18 @@ public class Leviathan
 			if(anim.getId() == LEVIATHAN_RANGED_SPOT_ANIM)
 			{
 				plugin.notifyFailure(LEVIATHAN,"You were hit by a ranged projectile off prayer.");
+				return;
 			}
 			if(anim.getId() == LEVIATHAN_MELEE_SPOT_ANIM)
 			{
 				plugin.notifyFailure(LEVIATHAN,"You were hit by a melee projectile off prayer.");
+				return;
 			}
 			if(anim.getId() == LEVIATHAN_MAGE_SPOT_ANIM)
 			{
 				plugin.notifyFailure(LEVIATHAN,"You were hit by a mage projectile off prayer.");
+				return;
 			}
-			return;
 		}
 	}
 
@@ -99,7 +104,7 @@ public class Leviathan
 			{
 				// Leviathan is always in one of these animations prior to damage hitting the player,
 				// so we can reliably assume the hitsplatApplied will come after the leviathanSpecial has been set
-				leviathanSpecial = ArrayUtils.contains(LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS, npc.getAnimation());
+				leviathanSpecial = ArrayUtils.contains(LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS, npc.getAnimation()) ? npc.getAnimation() : -1;
 			}
 		}
 		else if (event.getActor().equals(client.getLocalPlayer()) && event.getActor().getAnimation() == BOULDER_MOVE_ANIM)
@@ -115,54 +120,66 @@ public class Leviathan
 		{
 			return;
 		}
-		Actor target = hitsplatApplied.getActor();
-		if (!(target instanceof Player))
+		if (!(hitsplatApplied.getActor() == client.getLocalPlayer()))
 		{
 			return;
 		}
 		Hitsplat hitsplat = hitsplatApplied.getHitsplat();
-		if (hitsplat.isMine() && target == client.getLocalPlayer() && hitsplat.getHitsplatType() != HitsplatID.BLOCK_ME)
+		if (hitsplat.isMine() && hitsplat.getHitsplatType() != HitsplatID.BLOCK_ME)
 		{
-			List<NPC> npcs = client.getNpcs();
-			for (NPC npc : npcs)
+			Deque<GraphicsObject> graphicsObjects = client.getGraphicsObjects();
+			Iterator<GraphicsObject> iterator = graphicsObjects.iterator();
+			while (iterator.hasNext())
 			{
-				if (npc.getId() == NpcID.THE_LEVIATHAN)
+				GraphicsObject obj = iterator.next();
+				if (ArrayUtils.contains(LEVIATHAN_BOULDER_SHADOWS, obj.getId()))
 				{
-					boolean pathfinder = false;
-					for (NPC n : npcs)
+					if (checkCollision(obj))
 					{
-						if (n.getId() == NpcID.ABYSSAL_PATHFINDER)
+						log.info("Found possible collision");
+						log.info("ObjectID: " + obj.getId());
+						log.info("Animation Frame: " + obj.getAnimationFrame());
+						if (obj.getAnimationFrame() < 3)
 						{
-							pathfinder = true;
+							return;
 						}
-					}
-					if (leviathanSpecial || pathfinder)
-					{
-						plugin.notifyFailure(LEVIATHAN, "You took avoidable damage.");
+						plugin.notifyFailure(LEVIATHAN, "You were hit by falling rubble");
 						return;
-					}
-					// Lastly check shadows
-					WorldPoint currentLocation = client.getLocalPlayer().getWorldLocation();
-					Deque<GraphicsObject> graphicsObjects = client.getGraphicsObjects();
-					Iterator<GraphicsObject> iterator = graphicsObjects.iterator();
-					while (iterator.hasNext())
-					{
-						GraphicsObject obj = iterator.next();
-						for (int shadow : LEVIATHAN_BOULDER_SHADOWS)
-						{
-							if (obj.getId() == shadow)
-							{
-								LocalPoint localShadow = obj.getLocation();
-								WorldPoint worldShadow = WorldPoint.fromLocal(client, localShadow);
-								if (worldShadow.equals(currentLocation))
-								{
-									plugin.notifyFailure(LEVIATHAN, "You were hit by falling rubble");
-								}
-							}
-						}
 					}
 				}
 			}
+
+			// Check pathfinder or special (special might be checked differently soon O.O)
+			if(ArrayUtils.contains(LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS,leviathanSpecial))
+			{
+				if(ArrayUtils.contains(LEVIATHAN_SMOKE_BLAST_ANIM,leviathanSpecial))
+				{
+					plugin.notifyFailure(LEVIATHAN, "You were hit by the smoke blast.");
+					return;
+				}
+				if(ArrayUtils.contains(LEVIATHAN_LIGHTNING_ANIM,leviathanSpecial))
+				{
+					plugin.notifyFailure(LEVIATHAN, "You were hit by lightning.");
+					return;
+				}
+			}
+
+			List<NPC> npcs = client.getNpcs();
+			for (NPC npc : npcs)
+			{
+				if (npc.getId() == NpcID.ABYSSAL_PATHFINDER)
+				{
+					plugin.notifyFailure(LEVIATHAN, "You took avoidable damage.");
+					return;
+				}
+			}
 		}
+	}
+	private boolean checkCollision(GraphicsObject obj)
+	{
+		// WorldPoint currentLocation = client.getLocalPlayer().getWorldLocation();
+		LocalPoint localPoint = obj.getLocation();
+		WorldPoint worldPoint = WorldPoint.fromLocal(client, localPoint);
+		return worldPoint.equals(plugin.lastLocation);
 	}
 }
