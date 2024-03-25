@@ -17,6 +17,7 @@ import net.runelite.client.config.ConfigSection;
 public interface dt2pbfConfig extends net.runelite.client.config.Config
 {
 	@ConfigItem(
+		position = 0,
 		keyName = "infobox",
 		name = "Display infobox",
 		description = "Show infobox displaying kill perfection status"
@@ -27,6 +28,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	}
 
 	@ConfigItem(
+		position = 1,
 		keyName = "chatMessage",
 		name = "Chat messages",
 		description = "Show message in chat when failing a perfect kill"
@@ -37,19 +39,29 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	}
 
 	@ConfigItem(
+		position = 2,
 		keyName = "notifyRepeatedly",
 		name = "Notify repeat failure",
-		description = "Show failure message for each mistake"
+		description = "Show failure message/play sound for each mistake"
 	)
 	default boolean notifyRepeatedly()
 	{
 		return false;
 	}
 
+	@ConfigSection(
+		name="Sound",
+		description="Sound notification",
+		position=1,
+		closedByDefault = true
+	)
+	String soundNotification = "soundNotification";
+
 	@ConfigItem(
 		keyName = "audiblyNotify",
 		name = "Play sound",
-		description = "Play a sound on failure"
+		description = "Play a sound on failure",
+		section = soundNotification
 	)
 	default boolean audiblyNotify()
 	{
@@ -59,7 +71,8 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	@ConfigItem(
 		keyName = "soundSelection",
 		name = "Notification Sound",
-		description = "A RuneScape sound ID to be notified with"
+		description = "A RuneScape sound ID to be notified with",
+		section = soundNotification
 	)
 	default int soundSelection()
 	{
@@ -69,7 +82,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	@ConfigSection(
 		name="Highlight",
 		description="Show kill status on boss",
-		position=1,
+		position=2,
 		closedByDefault = true
 	)
 	String highlightSection = "highlightSection";
