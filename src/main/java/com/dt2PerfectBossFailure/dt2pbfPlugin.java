@@ -186,7 +186,6 @@ public class dt2pbfPlugin extends Plugin
 		{
 			return;
 		}
-		log.info("Key changed: "+configChanged.getKey());
 		switch(configChanged.getKey())
 		{
 			case "infobox":
@@ -201,7 +200,6 @@ public class dt2pbfPlugin extends Plugin
 				}
 			}
 			break;
-			// Highlights
 			case "highlightDuke":
 			{
 				dt2boss.DUKE.setRender(config.highlightDuke());
@@ -222,7 +220,6 @@ public class dt2pbfPlugin extends Plugin
 
 			case "highlightLeviathan":
 			{
-				log.info("Setting render for Leviathan to "+config.highlightLeviathan());
 				dt2boss.LEVIATHAN.setRender(config.highlightLeviathan());
 			}
 			break;

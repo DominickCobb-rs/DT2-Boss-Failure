@@ -134,9 +134,9 @@ public class Leviathan
 				{
 					if (checkCollision(obj))
 					{
-						log.info("Found possible collision");
-						log.info("ObjectID: " + obj.getId());
-						log.info("Animation Frame: " + obj.getAnimationFrame());
+						log.debug("Found possible collision");
+						log.debug("ObjectID: " + obj.getId());
+						log.debug("Animation Frame: " + obj.getAnimationFrame());
 						if (obj.getAnimationFrame() < 3)
 						{
 							return;
