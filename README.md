@@ -6,9 +6,7 @@ Made using the wiki's guidelines for perfect kills:
 - Any damage besides roar after sequence of attacks
 
 ## Whisperer
-- Ignores tentacle damage, and melee attacks while protected against
-- Any other damage prevents a perfect kill
--- (If you use ruby bolts against The Whisperer, it might tell you it's imperfect if the effect goes off)
+- Any non-zero damage
 
 ## Duke Sucellus
 - Being frozen by extremities/shadow magic
