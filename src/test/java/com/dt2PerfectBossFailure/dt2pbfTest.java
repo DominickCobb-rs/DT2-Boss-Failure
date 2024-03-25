@@ -7,7 +7,7 @@ public class dt2pbfTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(d2tpbfPlugin.class);
+		ExternalPluginManager.loadBuiltin(dt2pbfPlugin.class);
 		RuneLite.main(args);
 	}
 }

@@ -1,12 +1,11 @@
 package com.dt2PerfectBossFailure.bosses;
 
-import com.dt2PerfectBossFailure.d2tpbfPlugin;
+import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import com.dt2PerfectBossFailure.dt2pbfConfig;
 import com.google.inject.Inject;
 import java.util.Iterator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Actor;
 import net.runelite.api.ActorSpotAnim;
 import net.runelite.api.Client;
 import net.runelite.api.Deque;
@@ -16,12 +15,10 @@ import net.runelite.api.HitsplatID;
 import net.runelite.api.IterableHashTable;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
-import net.runelite.api.Player;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GraphicChanged;
-import net.runelite.api.events.GraphicsObjectCreated;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.eventbus.Subscribe;
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,19 +30,20 @@ public class Leviathan
 	private Client client;
 
 	@Inject
-	private d2tpbfPlugin plugin;
+	private dt2pbfPlugin plugin;
 
 	@Inject
 	private dt2pbfConfig config;
 
 	// Leviathan
 	private static final String LEVIATHAN = "The Leviathan";
-	private static final int[] LEVIATHAN_IDS = {NpcID.THE_LEVIATHAN, NpcID.THE_LEVIATHAN_12215, NpcID.THE_LEVIATHAN_12219, NpcID.THE_LEVIATHAN_12221};
+	public static final int[] LEVIATHAN_IDS = {NpcID.THE_LEVIATHAN, NpcID.THE_LEVIATHAN_12215, NpcID.THE_LEVIATHAN_12219, NpcID.THE_LEVIATHAN_12221};
 	private static final int LEVIATHAN_RANGED_SPOT_ANIM = 2490;
 	private static final int LEVIATHAN_MAGE_SPOT_ANIM = 2492;
 	private static final int LEVIATHAN_MELEE_SPOT_ANIM = 2491;
-	private static final int[] LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS = {10285, 10286, 10287, 10290};
-	private static final int[] LEVIATHAN_SMOKE_BLAST_ANIM = {10290, 10287};
+	private static final int[] LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS = {10285, 10286, 10287, 10289, 10288, 10290};
+	private static final int[] LEVIATHAN_SMOKE_BLAST_BOULDERS_ANIM = {10289, 10288, 10287};
+	private static final int LEVIATHAN_SMOKE_BLAST_ANIM = 10290;
 	private static final int[] LEVIATHAN_LIGHTNING_ANIM = {10285, 10286};
 	private static final int BOULDER_MOVE_ANIM = 1114;
 	private static final int[] LEVIATHAN_BOULDER_SHADOWS = {2475, 2476, 2477, 2478, 2479, 2480};
@@ -152,9 +150,14 @@ public class Leviathan
 			// Check pathfinder or special (special might be checked differently soon O.O)
 			if(ArrayUtils.contains(LEVIATHAN_SPECIAL_ATTACK_ANIMATIONS,leviathanSpecial))
 			{
-				if(ArrayUtils.contains(LEVIATHAN_SMOKE_BLAST_ANIM,leviathanSpecial))
+				if(LEVIATHAN_SMOKE_BLAST_ANIM == leviathanSpecial)
 				{
 					plugin.notifyFailure(LEVIATHAN, "You were hit by the smoke blast.");
+					return;
+				}
+				if(ArrayUtils.contains(LEVIATHAN_SMOKE_BLAST_BOULDERS_ANIM,leviathanSpecial))
+				{
+					plugin.notifyFailure(LEVIATHAN, "You were hit by falling rubble.");
 					return;
 				}
 				if(ArrayUtils.contains(LEVIATHAN_LIGHTNING_ANIM,leviathanSpecial))
@@ -169,7 +172,7 @@ public class Leviathan
 			{
 				if (npc.getId() == NpcID.ABYSSAL_PATHFINDER)
 				{
-					plugin.notifyFailure(LEVIATHAN, "You took avoidable damage.");
+					plugin.notifyFailure(LEVIATHAN, "You were hit outside the pathfinder.");
 					return;
 				}
 			}

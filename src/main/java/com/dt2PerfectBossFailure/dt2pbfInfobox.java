@@ -7,10 +7,10 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 
 public class dt2pbfInfobox extends InfoBox
 {
-	private final d2tpbfPlugin plugin;
+	private final dt2pbfPlugin plugin;
 
 	@Inject
-	public dt2pbfInfobox(d2tpbfPlugin plugin)
+	public dt2pbfInfobox(dt2pbfPlugin plugin)
 	{
 		super(null, plugin);
 		this.plugin = plugin;
@@ -31,7 +31,7 @@ public class dt2pbfInfobox extends InfoBox
 	@Override
 	public String getTooltip()
 	{
-		return plugin.currentReason;
+		return plugin.initialReason;
 	}
 
 }

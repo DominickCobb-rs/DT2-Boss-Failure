@@ -1,6 +1,6 @@
 package com.dt2PerfectBossFailure.bosses;
 
-import com.dt2PerfectBossFailure.d2tpbfPlugin;
+import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import com.dt2PerfectBossFailure.dt2pbfConfig;
 import com.google.inject.Inject;
 import java.util.List;
@@ -15,6 +15,8 @@ import net.runelite.api.NpcID;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.GraphicsObjectCreated;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.eventbus.Subscribe;
@@ -27,25 +29,46 @@ public class Duke
 	private Client client;
 
 	@Inject
-	private d2tpbfPlugin plugin;
+	private dt2pbfPlugin plugin;
 
 	@Inject
 	private dt2pbfConfig config;
 
 	// Duke
+	private int projectileEndTick = -1;
+	private int iciclesPopTick = -1;
 	private static final int DUKE_VENT = 12198;
 	private static final int DUKE_MAGIC_PROJECTILE = 2434;
 	private static final String DUKE = "Duke Sucellus";
 	private static final String EXTREMITY_FREEZE_MESSAGE = "You've been frozen in place!";
 	private static final String DUKE_FREEZE_MESSAGE = "You have been frozen!";
 	private static final int DUKE_REGION_ID = 12132;
+	private static final int[] DUKE_ICICLES = {2430,2431,2432,2433};
 	//WHY ARE THERE SO MANY
-	private static final int[] DUKE_IDS = {NpcID.DUKE_SUCELLUS_12167, NpcID.DUKE_SUCELLUS, NpcID.DUKE_SUCELLUS_12191, NpcID.DUKE_SUCELLUS_12192, NpcID.DUKE_SUCELLUS_12193, NpcID.DUKE_SUCELLUS_12194,
+	public static final int[] DUKE_IDS = {NpcID.DUKE_SUCELLUS_12167, NpcID.DUKE_SUCELLUS, NpcID.DUKE_SUCELLUS_12191, NpcID.DUKE_SUCELLUS_12192, NpcID.DUKE_SUCELLUS_12193, NpcID.DUKE_SUCELLUS_12194,
 		NpcID.DUKE_SUCELLUS_12195, NpcID.DUKE_SUCELLUS_12196};
 
 	private boolean inDukeRegion()
 	{
 		return ArrayUtils.contains(client.getMapRegions(), DUKE_REGION_ID);
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if(projectileEndTick == -1 || iciclesPopTick == -1)
+		{
+			return;
+		}
+		if(iciclesPopTick == client.getTickCount() && isHuggingDuke())
+		{
+			iciclesPopTick = -1;
+			plugin.notifyFailure(DUKE,"You were hit by Duke's melee.");
+		}
+		if(projectileEndTick == client.getTickCount())
+		{
+			projectileEndTick = -1;
+		}
 	}
 
 	@Subscribe
@@ -55,8 +78,9 @@ public class Duke
 		{
 			return;
 		}
-		if (event.getProjectile().getId() == DUKE_MAGIC_PROJECTILE)
+		if (event.getProjectile().getId() == DUKE_MAGIC_PROJECTILE && projectileEndTick == -1)
 		{
+			projectileEndTick = event.getProjectile().getEndCycle()+1;
 			plugin.notifyFailure(DUKE, "You were hit by Duke Sucellus's magic attack.");
 		}
 	}
@@ -110,21 +134,37 @@ public class Duke
 						return;
 					}
 				}
-				// Duke auto
-				if (ArrayUtils.contains(DUKE_IDS, npc.getId()))
-				{
-					WorldArea dukeMeleeArea = new WorldArea(npc.getWorldLocation().getX(), npc.getWorldLocation().getY() - 1, 7, 1, npc.getWorldLocation().getPlane());
-					if (client.getLocalPlayer().getWorldLocation().isInArea(dukeMeleeArea))
-					{
-						if (hitsplat.getAmount() > 11)
-						{
-							plugin.notifyFailure(DUKE, "You were hit by Duke Sucellus' slam attack.");
-							return;
-						}
-					}
-				}
 			}
 		}
 	}
 
+	@Subscribe
+	public void onGraphicsObjectCreated(GraphicsObjectCreated graphicsObjectCreated)
+	{
+		if(!inDukeRegion() || (plugin.notified && !config.notifyRepeatedly()))
+		{
+			return;
+		}
+		if(ArrayUtils.contains(DUKE_ICICLES,graphicsObjectCreated.getGraphicsObject().getId()))
+		{
+			iciclesPopTick = client.getTickCount() + 2;
+		}
+	}
+
+	private boolean isHuggingDuke()
+	{
+		List<NPC> npcs = client.getNpcs();
+		for (NPC npc : npcs)
+		{
+			if(ArrayUtils.contains(DUKE_IDS,npc.getId()))
+			{
+				WorldArea dukeMeleeArea = new WorldArea(npc.getWorldLocation().getX(), npc.getWorldLocation().getY() - 1, 7, 1, npc.getWorldLocation().getPlane());
+				if (client.getLocalPlayer().getWorldLocation().isInArea(dukeMeleeArea))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

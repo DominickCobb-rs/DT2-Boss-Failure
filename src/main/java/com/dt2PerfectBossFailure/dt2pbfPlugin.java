@@ -1,48 +1,28 @@
 package com.dt2PerfectBossFailure;
 
 import com.dt2PerfectBossFailure.bosses.Duke;
+import static com.dt2PerfectBossFailure.bosses.Duke.DUKE_IDS;
 import com.dt2PerfectBossFailure.bosses.Leviathan;
 import com.dt2PerfectBossFailure.bosses.Vardorvis;
 import com.dt2PerfectBossFailure.bosses.Whisperer;
-import com.google.errorprone.annotations.Var;
 import com.google.inject.Provides;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Actor;
-import net.runelite.api.ActorSpotAnim;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.Deque;
 import net.runelite.api.GameState;
 import net.runelite.api.GraphicsObject;
-import net.runelite.api.Hitsplat;
-import net.runelite.api.HitsplatID;
-import net.runelite.api.IterableHashTable;
 import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
-import net.runelite.api.Player;
-import net.runelite.api.Prayer;
 import net.runelite.api.coords.LocalPoint;
-import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ActorDeath;
-import net.runelite.api.events.AnimationChanged;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.GraphicChanged;
-import net.runelite.api.events.GraphicsObjectCreated;
-import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
-import net.runelite.api.events.ProjectileMoved;
-import net.runelite.api.events.SoundEffectPlayed;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
@@ -53,6 +33,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
@@ -60,34 +41,48 @@ import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Desert Treasure 2 Perfect Boss Notifier",
-	description="Notifies player when failing perfect kill conditions",
+	name = "DT2 Mistake Tracker",
+	description="Informs the player of mistakes resulting in imperfect kills",
 	tags= {"desert", "treasure", "dt2", "perfect"}
 )
-public class d2tpbfPlugin extends Plugin
+public class dt2pbfPlugin extends Plugin
 {
 	@Inject
-	private Client client;
+	public Client client;
+
 	@Inject
 	private dt2pbfConfig config;
+
 	@Inject
 	private ChatMessageManager chatMessageManager;
+
 	@Inject
 	private InfoBoxManager infoBoxManager;
+
 	@Inject
 	private EventBus eventBus;
 
 	@Inject
+	private OverlayManager overlayManager;
+
+	@Inject
 	private Duke duke;
+
 	@Inject
 	private Whisperer whisperer;
+
 	@Inject
 	private Vardorvis vardorvis;
+
 	@Inject
 	private Leviathan leviathan;
 
+	@Inject
+	private dt2pbfBossOverlay dt2pbfBossOverlay;
+
 	private InfoBox infoBox;
-	public String currentReason = "Perfect";
+	public String initialReason = "Perfect";
+	public ArrayList<String> reasons = new ArrayList<String>();
 	public boolean notified = false;
 	public NPC currentBoss;
 	public WorldPoint lastLocation = null;
@@ -102,6 +97,11 @@ public class d2tpbfPlugin extends Plugin
 		eventBus.register(whisperer);
 		eventBus.register(vardorvis);
 		eventBus.register(leviathan);
+		dt2boss.DUKE.initialize(config.dukePerfect(),config.dukeFailure(),config.highlightDuke());
+		dt2boss.WHISPERER.initialize(config.whispererPerfect(),config.whispererFailure(),config.highlightWhisperer());
+		dt2boss.VARDORVIS.initialize(config.vardorvisPerfect(),config.whispererFailure(),config.highlightVardorvis());
+		dt2boss.LEVIATHAN.initialize(config.leviathanPerfect(),config.leviathanFailure(),config.highlightLeviathan());
+		overlayManager.add(dt2pbfBossOverlay);
 	}
 
 	@Override
@@ -112,6 +112,7 @@ public class d2tpbfPlugin extends Plugin
 		eventBus.unregister(vardorvis);
 		eventBus.unregister(leviathan);
 		removeInfobox();
+		overlayManager.remove(dt2pbfBossOverlay);
 	}
 
 	@Subscribe
@@ -181,10 +182,11 @@ public class d2tpbfPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if(configChanged.getGroup() != "dt2perfectBossNotifier")
+		if(!configChanged.getGroup().equalsIgnoreCase("dt2perfectBossNotifier"))
 		{
 			return;
 		}
+		log.info("Key changed: "+configChanged.getKey());
 		switch(configChanged.getKey())
 		{
 			case "infobox":
@@ -198,6 +200,81 @@ public class d2tpbfPlugin extends Plugin
 					removeInfobox();
 				}
 			}
+			break;
+			// Highlights
+			case "highlightDuke":
+			{
+				dt2boss.DUKE.setRender(config.highlightDuke());
+			}
+			break;
+
+			case "highlightWhisperer":
+			{
+				dt2boss.WHISPERER.setRender(config.highlightWhisperer());
+			}
+			break;
+
+			case "highlightVardorvis":
+			{
+				dt2boss.VARDORVIS.setRender(config.highlightVardorvis());
+			}
+			break;
+
+			case "highlightLeviathan":
+			{
+				log.info("Setting render for Leviathan to "+config.highlightLeviathan());
+				dt2boss.LEVIATHAN.setRender(config.highlightLeviathan());
+			}
+			break;
+			// Perfect Colors
+			case "dukePerfectHighlight":
+			{
+				dt2boss.DUKE.setPerfectColor(config.dukePerfect());
+			}
+			break;
+
+			case "whispererPerfectHighlight":
+			{
+				dt2boss.WHISPERER.setPerfectColor(config.whispererPerfect());
+			}
+			break;
+
+			case "vardorvisPerfectHighlight":
+			{
+				dt2boss.VARDORVIS.setPerfectColor(config.vardorvisPerfect());
+			}
+			break;
+
+			case "leviathanPerfectHighlight":
+			{
+				dt2boss.LEVIATHAN.setPerfectColor(config.leviathanPerfect());
+			}
+			break;
+
+			// Failure Colors
+			case "dukeFailureHighlight":
+			{
+				dt2boss.DUKE.setFailureColor(config.dukeFailure());
+			}
+			break;
+
+			case "whispererFailureHighlight":
+			{
+				dt2boss.WHISPERER.setFailureColor(config.whispererFailure());
+			}
+			break;
+
+			case "vardorvisFailureHighlight":
+			{
+				dt2boss.VARDORVIS.setFailureColor(config.vardorvisFailure());
+			}
+			break;
+
+			case "leviathanFailureHighlight":
+			{
+				dt2boss.LEVIATHAN.setFailureColor(config.leviathanFailure());
+			}
+			break;
 		}
 	}
 
@@ -230,7 +307,11 @@ public class d2tpbfPlugin extends Plugin
 
 	public void notifyFailure(String bossName, String reason)
 	{
-		currentReason = reason;
+		if (initialReason == "Perfect")
+		{
+			initialReason = reason;
+		}
+		reasons.add(reason);
 		if (notified && !config.notifyRepeatedly())
 		{
 			return;
@@ -265,16 +346,20 @@ public class d2tpbfPlugin extends Plugin
 
 	private void reset()
 	{
-		currentReason = "Perfect";
+		initialReason = "Perfect";
 		if (infoBox != null)
 		{
 			removeInfobox();
 		}
 		if(config.infobox())
 		{
-			createInfobox(false,currentReason);
+			createInfobox(false, initialReason);
 		}
 		notified = false;
+		if(reasons!=null)
+		{
+			reasons.clear();
+		}
 	}
 
 	private void createInfobox(Boolean failed, String reason)
@@ -289,11 +374,11 @@ public class d2tpbfPlugin extends Plugin
 			BufferedImage icon;
 			if (failed)
 			{
-				icon = ImageUtil.loadImageResource(d2tpbfPlugin.class, "/icons/X_mark.png");
+				icon = ImageUtil.loadImageResource(dt2pbfPlugin.class, "/icons/X_mark.png");
 			}
 			else
 			{
-				icon = ImageUtil.loadImageResource(d2tpbfPlugin.class, "/icons/Yes_check.png");
+				icon = ImageUtil.loadImageResource(dt2pbfPlugin.class, "/icons/Yes_check.png");
 			}
 			infoBox = new dt2pbfInfobox(this);
 			infoBox.setImage(icon);

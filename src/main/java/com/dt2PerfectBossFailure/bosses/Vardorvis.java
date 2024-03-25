@@ -1,6 +1,6 @@
 package com.dt2PerfectBossFailure.bosses;
 
-import com.dt2PerfectBossFailure.d2tpbfPlugin;
+import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import com.dt2PerfectBossFailure.dt2pbfConfig;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +22,12 @@ public class Vardorvis
 	private Client client;
 
 	@Inject
-	private d2tpbfPlugin plugin;
+	private dt2pbfPlugin plugin;
 
 	@Inject
 	private dt2pbfConfig config;
 
+	public static final int[] VARDORVIS_IDS = {NpcID.VARDORVIS,NpcID.VARDORVIS_12224,NpcID.VARDORVIS_12425,NpcID.VARDORVIS_12426,NpcID.VARDORVIS_12228};
 	private static final int VARDORVIS_REGION_ID = 4405;
 	private static final String VARDORVIS = "Vardorvis";
 	private static final String VARDORVIS_PROJECTILE_MESSAGE = "You've been injured and can't use protection prayers!";
