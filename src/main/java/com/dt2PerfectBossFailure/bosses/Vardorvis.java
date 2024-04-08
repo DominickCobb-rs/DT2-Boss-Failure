@@ -38,10 +38,6 @@ public class Vardorvis
 
 	private boolean inVardorvisRegion()
 	{
-		if (client == null)
-		{
-			log.info("idiot");
-		}
 		if(client.getMapRegions() == null)
 		{
 			return false;
@@ -50,6 +46,8 @@ public class Vardorvis
 	}
 
 	// Vardorvis dash attack
+	// TODO: Improve this. Can probably be simplified like Duke melees in onHitsplatApplied...
+	//  but race conditions
 	@Subscribe
 	public void onGraphicsObjectCreated(GraphicsObjectCreated event)
 	{

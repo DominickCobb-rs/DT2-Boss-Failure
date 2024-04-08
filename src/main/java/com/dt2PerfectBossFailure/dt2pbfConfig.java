@@ -52,7 +52,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	@ConfigSection(
 		name="Sound",
 		description="Sound notification",
-		position=1,
+		position=4,
 		closedByDefault = false
 	)
 	String soundNotification = "soundNotification";
@@ -82,7 +82,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	@ConfigSection(
 		name="Highlight",
 		description="Show kill status on boss",
-		position=2,
+		position=5,
 		closedByDefault = false
 	)
 	String highlightSection = "highlightSection";
