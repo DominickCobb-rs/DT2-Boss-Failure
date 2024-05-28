@@ -1,9 +1,9 @@
 package com.dt2PerfectBossFailure;
 
-import static com.dt2PerfectBossFailure.bosses.Duke.DUKE_IDS;
-import static com.dt2PerfectBossFailure.bosses.Leviathan.LEVIATHAN_IDS;
-import static com.dt2PerfectBossFailure.bosses.Vardorvis.VARDORVIS_IDS;
-import static com.dt2PerfectBossFailure.bosses.Whisperer.WHISPERER_IDS;
+import static com.dt2PerfectBossFailure.bossFailure.Duke.DUKE_IDS;
+import static com.dt2PerfectBossFailure.bossFailure.Leviathan.LEVIATHAN_IDS;
+import static com.dt2PerfectBossFailure.bossFailure.Vardorvis.VARDORVIS_IDS;
+import static com.dt2PerfectBossFailure.bossFailure.Whisperer.WHISPERER_IDS;
 import java.awt.Color;
 
 public enum dt2boss

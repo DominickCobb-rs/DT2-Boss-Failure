@@ -1,21 +1,17 @@
 package com.dt2PerfectBossFailure;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.util.EnumSet;
-import java.util.Set;
 import net.runelite.client.config.Alpha;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
-// Settings for notification, ideally checkboxes so multiple can be used
-// Chatbox
-// Notify
-// Audio (like the boost lost audio when using divines/antipoisons
-@ConfigGroup("dt2perfectBossNotifier")
+
+@ConfigGroup(dt2pbfConfig.DT2_UTILITIES_CONFIG_GROUP)
 public interface dt2pbfConfig extends net.runelite.client.config.Config
 {
+	String DT2_UTILITIES_CONFIG_GROUP = "dt2perfectBossNotifier";
 	@ConfigItem(
 		position = 0,
 		keyName = "infobox",
@@ -49,6 +45,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 		return false;
 	}
 
+	// Sound section
 	@ConfigSection(
 		name="Sound",
 		description="Sound notification",
@@ -79,6 +76,7 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 		return 1043;
 	}
 
+	// Highlight section
 	@ConfigSection(
 		name="Highlight",
 		description="Show kill status on boss",
@@ -228,4 +226,76 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 		section=highlightSection
 	)
 	default Color leviathanFailure() {return Color.red;}
+
+	// Vardorvis pillars
+	@ConfigSection(
+		name="Vardorvis pillars",
+		description="Show or hide pillars in Vardorvis' arena",
+		position=6,
+		closedByDefault = false
+	)
+	String vardorvisPillars = "vardorvisPillars";
+
+	@ConfigItem(
+		position = 1,
+		keyName = "hidePillars",
+		name = "Hide pillars",
+		description = "Hide the pillars in Vardorvis' arena",
+		section = vardorvisPillars
+	)
+	default boolean hidePillars()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		position = 2,
+		keyName = "drawPillarLocation",
+		name = "Draw pillars",
+		description = "Display the pillar locations where you can't click",
+		section = vardorvisPillars
+	)
+	default boolean drawPillarLocation()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		position = 3,
+		keyName = "borderColor",
+		name = "Border color",
+		description = "Fill color where the pillars used to be",
+		section = vardorvisPillars
+	)
+	default Color borderColor()
+	{
+		return new Color(0x64FFFF00, true);
+	}
+
+	@ConfigItem(
+		position = 4,
+		keyName = "borderWidth",
+		name = "Border Width",
+		description = "Width of the marked tile border",
+		section = vardorvisPillars
+	)
+	default double pillarBorderWidth()
+	{
+		return 2;
+	}
+
+	@ConfigItem(
+		position = 5,
+		keyName = "fillOpacity",
+		name = "Fill Opacity",
+		description = "Opacity of the tile fill color",
+		section = vardorvisPillars
+	)
+	@Range(
+		max = 255
+	)
+	default int fillOpacity()
+	{
+		return 50;
+	}
 }

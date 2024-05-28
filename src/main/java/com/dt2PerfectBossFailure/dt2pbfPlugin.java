@@ -1,12 +1,12 @@
 package com.dt2PerfectBossFailure;
 
-import com.dt2PerfectBossFailure.bosses.Duke;
-import static com.dt2PerfectBossFailure.bosses.Duke.DUKE_IDS;
-import com.dt2PerfectBossFailure.bosses.Leviathan;
-import com.dt2PerfectBossFailure.bosses.Vardorvis;
-import com.dt2PerfectBossFailure.bosses.Whisperer;
+import com.dt2PerfectBossFailure.bossFailure.Duke;
+import com.dt2PerfectBossFailure.bossFailure.Leviathan;
+import com.dt2PerfectBossFailure.bossFailure.Vardorvis;
+import com.dt2PerfectBossFailure.bossFailure.Whisperer;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarHider;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarOverlay;
 import com.google.inject.Provides;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.inject.Inject;
@@ -23,6 +23,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
@@ -49,6 +50,9 @@ public class dt2pbfPlugin extends Plugin
 {
 	@Inject
 	public Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private dt2pbfConfig config;
@@ -80,19 +84,31 @@ public class dt2pbfPlugin extends Plugin
 	@Inject
 	private dt2pbfBossOverlay dt2pbfBossOverlay;
 
+	@Inject
+	public VardorvisPillarHider vardorvisPillarHider;
+
+	@Inject
+	private VardorvisPillarOverlay vardorvisPillarOverlay;
+
 	private InfoBox infoBox;
 	public String initialReason = "Perfect";
 	public ArrayList<String> reasons = new ArrayList<String>();
 	public boolean notified = false;
-	public NPC currentBoss;
 	public WorldPoint lastLocation = null;
 	//Regions
 	private static final int[] BOSS_REGION_IDS = {4405, 8291, 12132, 10595};
 
-	private static final String[] BOSS_NAMES = {"duke sucellus", "vardorvis", "the leviathan", "the whisperer"};
+	private static final String[] BOSS_NAMES = {"duke sucellus", "vardorvis", "the leviathan", "the whisperer","odd figure"};
 
 	@Override
-	protected void startUp() throws Exception {
+	protected void startUp() throws Exception
+	{
+		eventBus.register(vardorvisPillarHider);
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			clientThread.invoke(vardorvisPillarHider::hide);
+		}
+		overlayManager.add(vardorvisPillarOverlay);
 		eventBus.register(duke);
 		eventBus.register(whisperer);
 		eventBus.register(vardorvis);
@@ -111,8 +127,17 @@ public class dt2pbfPlugin extends Plugin
 		eventBus.unregister(whisperer);
 		eventBus.unregister(vardorvis);
 		eventBus.unregister(leviathan);
+		eventBus.unregister(vardorvisPillarHider);
 		removeInfobox();
 		overlayManager.remove(dt2pbfBossOverlay);
+		clientThread.invoke(() ->
+		{
+			if (client.getGameState() == GameState.LOGGED_IN)
+			{
+				client.setGameState(GameState.LOADING);
+			}
+		});
+		overlayManager.remove(vardorvisPillarOverlay);
 	}
 
 	@Subscribe
@@ -131,7 +156,6 @@ public class dt2pbfPlugin extends Plugin
 	{
 		if (config.infobox() && ArrayUtils.contains(BOSS_NAMES, event.getNpc().getName().toLowerCase()) && !event.getNpc().getName().contains("Head"))
 		{
-			currentBoss = event.getNpc();
 			reset();
 		}
 	}
@@ -182,7 +206,7 @@ public class dt2pbfPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if(!configChanged.getGroup().equalsIgnoreCase("dt2perfectBossNotifier"))
+		if(!configChanged.getGroup().equalsIgnoreCase(config.DT2_UTILITIES_CONFIG_GROUP))
 		{
 			return;
 		}

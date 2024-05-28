@@ -1,4 +1,4 @@
-package com.dt2PerfectBossFailure.bosses;
+package com.dt2PerfectBossFailure.bossFailure;
 
 import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import com.dt2PerfectBossFailure.dt2pbfConfig;
