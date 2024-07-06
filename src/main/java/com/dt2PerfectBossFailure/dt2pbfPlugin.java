@@ -6,6 +6,7 @@ import com.dt2PerfectBossFailure.bossFailure.Vardorvis;
 import com.dt2PerfectBossFailure.bossFailure.Whisperer;
 import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarHider;
 import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarOverlay;
+import com.dt2PerfectBossFailure.whispererUtils.WhispererProjectileSwapper;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -42,9 +43,9 @@ import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
-	name = "DT2 Mistake Tracker",
-	description="Informs the player of mistakes resulting in imperfect kills",
-	tags= {"desert", "treasure", "dt2", "perfect"}
+	name = "DT2 Boss Utilities",
+	description="Change Whisperer projectiles, hide Vardorvis pillars, track perfect kill status.",
+	tags= {"desert", "treasure", "dt2", "perfect","vardorvis","whisperer","duke","leviathan"}
 )
 public class dt2pbfPlugin extends Plugin
 {
@@ -76,6 +77,9 @@ public class dt2pbfPlugin extends Plugin
 	private Whisperer whisperer;
 
 	@Inject
+	public WhispererProjectileSwapper whispererProjectileSwapper;
+
+	@Inject
 	private Vardorvis vardorvis;
 
 	@Inject
@@ -104,6 +108,7 @@ public class dt2pbfPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		eventBus.register(vardorvisPillarHider);
+		eventBus.register(whispererProjectileSwapper);
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			clientThread.invoke(vardorvisPillarHider::hide);
@@ -128,6 +133,7 @@ public class dt2pbfPlugin extends Plugin
 		eventBus.unregister(vardorvis);
 		eventBus.unregister(leviathan);
 		eventBus.unregister(vardorvisPillarHider);
+		eventBus.unregister(whispererProjectileSwapper);
 		removeInfobox();
 		overlayManager.remove(dt2pbfBossOverlay);
 		clientThread.invoke(() ->

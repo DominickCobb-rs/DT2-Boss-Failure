@@ -78,9 +78,11 @@ public class VardorvisPillarOverlay extends Overlay
 				return null;
 			}
 
-			Stroke stroke = new BasicStroke((float) config.borderWidth());
+			Stroke stroke = new BasicStroke((float) config.pillarBorderWidth());
 			for (final Tile tile : tiles)
 			{
+				if(tile==null)
+					continue;
 				WorldPoint worldPoint = tile.getWorldLocation();
 				if (worldPoint.getPlane() != client.getPlane())
 				{

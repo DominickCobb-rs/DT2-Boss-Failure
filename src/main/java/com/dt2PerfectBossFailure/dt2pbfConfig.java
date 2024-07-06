@@ -1,6 +1,35 @@
+/*
+	BSD 2-Clause License
+
+	Copyright (c) 2024, zom
+	Copyright (c) 2023, InfernoStats
+
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions are met:
+
+	1. Redistributions of source code must retain the above copyright notice, this
+	   list of conditions and the following disclaimer.
+
+	2. Redistributions in binary form must reproduce the above copyright notice,
+	   this list of conditions and the following disclaimer in the documentation
+	   and/or other materials provided with the distribution.
+
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+	FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+	SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.dt2PerfectBossFailure;
 
 import java.awt.Color;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.runelite.client.config.Alpha;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -297,5 +326,52 @@ public interface dt2pbfConfig extends net.runelite.client.config.Config
 	default int fillOpacity()
 	{
 		return 50;
+	}
+
+	@ConfigSection(
+		name="Projectile Swaps",
+		description="Swap projectiles per boss",
+		position=7,
+		closedByDefault = false
+	)
+	String projectileSwaps = "projectileSwaps";
+
+	// Whisperer Projectiles
+	@Getter
+	@AllArgsConstructor
+	enum WhispererStyle
+	{
+		Default(2444,2445),
+		Inferno(1378, 1380),
+		CoX(1343, 1341),
+		ToB(1607, 1606),
+		ToA(2241, 2224);
+
+		private final int range;
+		private final int magic;
+	}
+
+	@ConfigItem(
+		keyName = "whispererProjectileStyle",
+		name = "Whisperer projectiles",
+		description = "The projectile you want to replace Whisperer's",
+		section = projectileSwaps,
+		position = 0
+	)
+	default WhispererStyle whispererProjectileStyle()
+	{
+		return WhispererStyle.Default;
+	}
+
+	@ConfigItem(
+		keyName = "vardorvisProjectiles",
+		name = "Vardorvis Projectiles",
+		description = "",
+		section = projectileSwaps,
+		position = 1
+	)
+	default String explanation()
+	{
+		return "Please install the separate \"Vardorvis Projectiles\" plugin for now";
 	}
 }
