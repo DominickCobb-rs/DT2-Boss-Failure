@@ -16,14 +16,9 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.GraphicsObject;
-import net.runelite.api.NPC;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ActorDeath;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.NpcDespawned;
-import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.events.*;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -123,6 +118,7 @@ public class dt2pbfPlugin extends Plugin
 		dt2boss.VARDORVIS.initialize(config.vardorvisPerfect(),config.whispererFailure(),config.highlightVardorvis());
 		dt2boss.LEVIATHAN.initialize(config.leviathanPerfect(),config.leviathanFailure(),config.highlightLeviathan());
 		overlayManager.add(dt2pbfBossOverlay);
+		reset();
 	}
 
 	@Override
@@ -179,6 +175,25 @@ public class dt2pbfPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onChatMessage(ChatMessage message)
+	{
+		if (message.getType() != ChatMessageType.GAMEMESSAGE)
+		{
+			return;
+		}
+
+		if (message.getMessage().contains("Oh dear, you are dead"))
+		{
+			reset();
+		}
+
+		if (message.getMessage().contains("kill count is:"))
+		{
+			reset();
+		}
+	}
+
+	@Subscribe
 	public void onNpcDespawned(NpcDespawned event)
 	{
 		if (event.getActor().getName()==null)
@@ -189,7 +204,6 @@ public class dt2pbfPlugin extends Plugin
 		if (ArrayUtils.contains(BOSS_NAMES, event.getActor().getName().toLowerCase().trim()) && !event.getActor().getName().toLowerCase().contains("head"))
 		{
 			reset();
-			removeInfobox();
 		}
 	}
 
@@ -318,23 +332,29 @@ public class dt2pbfPlugin extends Plugin
 
 	private boolean inBossRegion()
 	{
-		if (client.getMapRegions() == null)
-		{
-			return false;
-		}
 		for(int region : BOSS_REGION_IDS)
 		{
-			if (ArrayUtils.contains(client.getMapRegions(),region))
+			if(client.getLocalPlayer()==null)
 			{
+				return false;
+			}
+			if (WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID()==region)
+			{
+
 				return true;
 			}
 		}
 		return false;
 	}
 
+	public int getCurrentRegion()
+	{
+		return WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
+	}
+
 	public void notifyFailure(String bossName, String reason)
 	{
-		if (initialReason == "Perfect")
+		if (initialReason.equals("Perfect"))
 		{
 			initialReason = reason;
 		}
@@ -371,7 +391,7 @@ public class dt2pbfPlugin extends Plugin
 		notified = true;
 	}
 
-	private void reset()
+	public void reset()
 	{
 		initialReason = "Perfect";
 		if (infoBox != null)
@@ -395,7 +415,6 @@ public class dt2pbfPlugin extends Plugin
 		{
 			return;
 		}
-
 		if (infoBox == null && inBossRegion())
 		{
 			BufferedImage icon;

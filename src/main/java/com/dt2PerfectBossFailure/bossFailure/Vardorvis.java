@@ -4,11 +4,8 @@ import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import com.dt2PerfectBossFailure.dt2pbfConfig;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
-import net.runelite.api.Prayer;
+import net.runelite.api.*;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GraphicsObjectCreated;
@@ -38,11 +35,11 @@ public class Vardorvis
 
 	private boolean inVardorvisRegion()
 	{
-		if(client.getMapRegions() == null)
+		if (!client.getGameState().equals(GameState.LOGGED_IN) || client.getLocalPlayer() == null)
 		{
 			return false;
 		}
-		return ArrayUtils.contains(client.getMapRegions(), VARDORVIS_REGION_ID);
+		return plugin.getCurrentRegion()==VARDORVIS_REGION_ID;
 	}
 
 	// Vardorvis dash attack
@@ -99,11 +96,13 @@ public class Vardorvis
 		{
 			return;
 		}
-
+		/*
+		// This doesn't actually cause failure, it just allows the being hit by melee of prayer to happen
 		if (message.getMessage().contains(VARDORVIS_PROJECTILE_MESSAGE))
 		{
 			plugin.notifyFailure(VARDORVIS, "You were hit by a head projectile off-prayer.");
 		}
+		*/
 
 		if (message.getMessage().contains(VARDORVIS_AXE_MESSAGE))
 		{

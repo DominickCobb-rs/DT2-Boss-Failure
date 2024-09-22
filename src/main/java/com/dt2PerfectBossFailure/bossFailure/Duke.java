@@ -6,16 +6,7 @@ import com.google.inject.Inject;
 import java.util.Iterator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Actor;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.Deque;
-import net.runelite.api.GraphicsObject;
-import net.runelite.api.Hitsplat;
-import net.runelite.api.HitsplatID;
-import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
-import net.runelite.api.Player;
+import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
@@ -53,7 +44,11 @@ public class Duke
 
 	private boolean inDukeRegion()
 	{
-		return ArrayUtils.contains(client.getMapRegions(), DUKE_REGION_ID);
+		if (!client.getGameState().equals(GameState.LOGGED_IN) || client.getLocalPlayer() == null)
+		{
+			return false;
+		}
+		return plugin.getCurrentRegion()==DUKE_REGION_ID;
 	}
 
 	@Subscribe

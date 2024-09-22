@@ -6,18 +6,11 @@ import com.google.inject.Inject;
 import java.util.Iterator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ActorSpotAnim;
-import net.runelite.api.Client;
-import net.runelite.api.Deque;
-import net.runelite.api.GraphicsObject;
-import net.runelite.api.Hitsplat;
-import net.runelite.api.HitsplatID;
-import net.runelite.api.IterableHashTable;
-import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
+import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GraphicChanged;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.eventbus.Subscribe;
@@ -52,7 +45,11 @@ public class Leviathan
 
 	private boolean inLeviathanRegion()
 	{
-		return ArrayUtils.contains(client.getMapRegions(), LEVIATHAN_REGION_ID);
+		if (!client.getGameState().equals(GameState.LOGGED_IN) || client.getLocalPlayer() == null)
+		{
+			return false;
+		}
+		return plugin.getCurrentRegion()==LEVIATHAN_REGION_ID;
 	}
 
 	@Subscribe
