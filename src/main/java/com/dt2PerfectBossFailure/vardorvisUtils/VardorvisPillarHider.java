@@ -112,7 +112,6 @@ public class VardorvisPillarHider
 
 		Scene scene = client.getScene();
 		Tile[][] tiles = scene.getTiles()[0];
-		int cnt = 0;
 		for (int x = 0; x < Constants.SCENE_SIZE; ++x)
 		{
 			for (int y = 0; y < Constants.SCENE_SIZE; ++y)
@@ -129,12 +128,10 @@ public class VardorvisPillarHider
 					{
 						scene.removeGameObject(gameObject);
 						pillarTiles.add(tile);
-						++cnt;
 						break;
 					}
 				}
 			}
-			log.debug("Removed {} objects", cnt);
 		}
 	}
 

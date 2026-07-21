@@ -25,10 +25,9 @@
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.dt2PerfectBossFailure.whispererUtils;
+package com.dt2PerfectBossFailure.vardorvisUtils;
 
 import com.dt2PerfectBossFailure.dt2pbfConfig;
-import com.dt2PerfectBossFailure.dt2pbfPlugin;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -37,28 +36,26 @@ import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
-public class WhispererProjectileSwapper
+public class VardorvisProjectileSwapper
 {
-	// Vardorvis' Head Projectile IDs
-	private static final int MAGIC_PROJECTILE = 2445;
-	private static final int RANGE_PROJECTILE = 2444;
+	// Vardorvis' Head prayer-disable projectile IDs
+	private static final int MAGIC_PROJECTILE = 2520;
+	private static final int RANGE_PROJECTILE = 2521;
 
 	private final Client client;
 	private final dt2pbfConfig config;
-	private final dt2pbfPlugin plugin;
 
 	@Inject
-	private WhispererProjectileSwapper(Client client, dt2pbfPlugin plugin, dt2pbfConfig config)
+	private VardorvisProjectileSwapper(Client client, dt2pbfConfig config)
 	{
 		this.client = client;
-		this.plugin = plugin;
 		this.config = config;
 	}
 
 	@Subscribe
 	public void onProjectileMoved(ProjectileMoved projectileMoved)
 	{
-		dt2pbfConfig.ProjectileStyle style = config.whispererProjectileStyle();
+		dt2pbfConfig.ProjectileStyle style = config.vardorvisProjectileStyle();
 		Projectile projectile = projectileMoved.getProjectile();
 		if (projectile.getId() == RANGE_PROJECTILE && style.getRange() != RANGE_PROJECTILE)
 		{

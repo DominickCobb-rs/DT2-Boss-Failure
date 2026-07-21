@@ -4,8 +4,14 @@ import com.dt2PerfectBossFailure.bossFailure.Duke;
 import com.dt2PerfectBossFailure.bossFailure.Leviathan;
 import com.dt2PerfectBossFailure.bossFailure.Vardorvis;
 import com.dt2PerfectBossFailure.bossFailure.Whisperer;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisAxeHider;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisAxeOverlay;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisCaptchaOverlay;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisHeadOverlay;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisHeadTracker;
 import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarHider;
 import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisPillarOverlay;
+import com.dt2PerfectBossFailure.vardorvisUtils.VardorvisProjectileSwapper;
 import com.dt2PerfectBossFailure.whispererUtils.WhispererProjectileSwapper;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
@@ -39,8 +45,8 @@ import org.apache.commons.lang3.ArrayUtils;
 @Slf4j
 @PluginDescriptor(
 	name = "DT2 Boss Utilities",
-	description="Change Whisperer projectiles, hide Vardorvis pillars, track perfect kill status.",
-	tags= {"desert", "treasure", "dt2", "perfect","vardorvis","whisperer","duke","leviathan"}
+	description="Swap Whisperer & Vardorvis projectiles, hide Vardorvis pillars & axes, highlight Vardorvis heads, track perfect kill status.",
+	tags= {"desert", "treasure", "dt2", "perfect","vardorvis","whisperer","duke","leviathan","awakened"}
 )
 public class dt2pbfPlugin extends Plugin
 {
@@ -75,6 +81,9 @@ public class dt2pbfPlugin extends Plugin
 	public WhispererProjectileSwapper whispererProjectileSwapper;
 
 	@Inject
+	public VardorvisProjectileSwapper vardorvisProjectileSwapper;
+
+	@Inject
 	private Vardorvis vardorvis;
 
 	@Inject
@@ -88,6 +97,21 @@ public class dt2pbfPlugin extends Plugin
 
 	@Inject
 	private VardorvisPillarOverlay vardorvisPillarOverlay;
+
+	@Inject
+	public VardorvisAxeHider vardorvisAxeHider;
+
+	@Inject
+	private VardorvisAxeOverlay vardorvisAxeOverlay;
+
+	@Inject
+	public VardorvisHeadTracker vardorvisHeadTracker;
+
+	@Inject
+	private VardorvisHeadOverlay vardorvisHeadOverlay;
+
+	@Inject
+	private VardorvisCaptchaOverlay vardorvisCaptchaOverlay;
 
 	private InfoBox infoBox;
 	public String initialReason = "Perfect";
@@ -104,6 +128,13 @@ public class dt2pbfPlugin extends Plugin
 	{
 		eventBus.register(vardorvisPillarHider);
 		eventBus.register(whispererProjectileSwapper);
+		eventBus.register(vardorvisAxeHider);
+		eventBus.register(vardorvisHeadTracker);
+		eventBus.register(vardorvisProjectileSwapper);
+		vardorvisAxeHider.startUp();
+		overlayManager.add(vardorvisHeadOverlay);
+		overlayManager.add(vardorvisAxeOverlay);
+		overlayManager.add(vardorvisCaptchaOverlay);
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			clientThread.invoke(vardorvisPillarHider::hide);
@@ -115,7 +146,7 @@ public class dt2pbfPlugin extends Plugin
 		eventBus.register(leviathan);
 		dt2boss.DUKE.initialize(config.dukePerfect(),config.dukeFailure(),config.highlightDuke());
 		dt2boss.WHISPERER.initialize(config.whispererPerfect(),config.whispererFailure(),config.highlightWhisperer());
-		dt2boss.VARDORVIS.initialize(config.vardorvisPerfect(),config.whispererFailure(),config.highlightVardorvis());
+		dt2boss.VARDORVIS.initialize(config.vardorvisPerfect(),config.vardorvisFailure(),config.highlightVardorvis());
 		dt2boss.LEVIATHAN.initialize(config.leviathanPerfect(),config.leviathanFailure(),config.highlightLeviathan());
 		overlayManager.add(dt2pbfBossOverlay);
 		reset();
@@ -130,6 +161,13 @@ public class dt2pbfPlugin extends Plugin
 		eventBus.unregister(leviathan);
 		eventBus.unregister(vardorvisPillarHider);
 		eventBus.unregister(whispererProjectileSwapper);
+		eventBus.unregister(vardorvisAxeHider);
+		eventBus.unregister(vardorvisHeadTracker);
+		eventBus.unregister(vardorvisProjectileSwapper);
+		vardorvisAxeHider.shutDown();
+		overlayManager.remove(vardorvisHeadOverlay);
+		overlayManager.remove(vardorvisAxeOverlay);
+		overlayManager.remove(vardorvisCaptchaOverlay);
 		removeInfobox();
 		overlayManager.remove(dt2pbfBossOverlay);
 		clientThread.invoke(() ->
